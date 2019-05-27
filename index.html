@@ -1,0 +1,228 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>Making your first Phaser 3 Game - Part 2</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+    
+    var config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 300 },
+            debug: false
+        }
+    },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    //---------------- VARIABLES ----------------
+    var rotationArray = [];
+    var imageKeys = ["watermelon", "banana", "cherry", "coconut"]; 
+    var x, y;
+    var score = 0;
+    var linesQueue = [];
+
+    var game = new Phaser.Game(config);
+
+    //---------------- PRELOAD FUNCTION ----------------
+    function preload ()
+    {
+        this.load.image('background', 'Assets/fruit-ninja-wood-background.jpg')
+        this.load.image('watermelon', 'Assets/WatermelonT.png')
+        this.load.image('banana', 'Assets/banana.png')
+        this.load.image('cherry', 'Assets/cherry.png')
+        this.load.image('coconut', 'Assets/coconut.png')
+    }
+
+    //---------------- CREATE FUNCTION ----------------
+    function create ()
+    {
+        this.add.image(400, 300, 'background').setScale(0.75);
+
+        mouse = this.physics.add.image(400, 300, 'watermelon').setScale(0.05).setTint(0x000000);
+
+        fruits = this.physics.add.group();
+
+        /*
+        var fruit = 'watermelon';
+
+            ch = Phaser.Math.FloatBetween(0, 2);
+            switch(Math.round(ch)){
+                case 0: fruit = 'banana';
+                        break;
+                case 1: fruit = 'cherry';
+                        break;
+                case 2: fruit = 'coconut';
+                        break;
+            }
+        */
+
+
+
+        //random fruit create
+        
+        for (var i = 0; i < 10; i++) {
+            fruits.create(Phaser.Math.FloatBetween(200, 600), 700, imageKeys[Math.round(Phaser.Math.FloatBetween(0, 3))]);     
+        }
+        
+
+
+        //setScale and velocities
+        fruits.children.iterate(function (child){
+            child.setScale(0.5);
+            child.setVelocityY(Phaser.Math.FloatBetween(-450, -550));
+            child.setVelocityX(Phaser.Math.FloatBetween(-200, +200));
+/////////////////////////////////////////////////////////////////////////////            var timer = this.Time.delayedCall(1000, destroyFruit, child, global);
+
+            /*
+            // Turn on wall collision checking for fruit
+            child.setCollideWorldBounds(true);
+            child.body.onWorldBounds = true;
+            child.body.world.on('worldbounds', function(body) {
+              // Check if the body's game object is the image you are listening for
+              if (body.gameObject === this) {
+                // Stop physics and render updates for this object
+                this.setActive(false);
+                this.setVisible(false);
+              }
+            }, child);
+            */
+
+
+        });
+
+
+
+        //random rotations for each fruit
+        for (var i = 0; i < 20; i++) {
+            rotationArray[i] = Phaser.Math.FloatBetween(1.5, 7);
+        }
+
+
+        this.physics.add.collider(fruits, mouse);
+
+        this.physics.add.overlap(fruits, mouse, cutFruit, null, this);
+
+
+
+        //input
+        cursors = this.input.mousePointer;
+
+        x = cursors.x;
+        y = cursors.y;
+
+        lines = this.add.group();
+
+
+
+        //  The score
+        scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#fff' });
+
+
+    }
+
+    //---------------- UPDATE FUNCTION ----------------
+    function update ()
+    {
+        /*
+        for (var i = 0; i < fruits.length; i++) {
+            fruits[i].angle += 5;
+        }
+        */
+        i = 0;
+        /*
+        fruits.children.iterate(function (child){
+            child.angle += rotationArray[i];
+
+            //check for mouse hit
+            if(Math.abs(child.x - cursors.x) < 20){ //check collider
+                child.disableBody(true, true);
+            }
+
+
+            i++;
+        });
+        */
+
+        //line drawing for cutting effect
+        var line = new Phaser.Geom.Line(x, y, cursors.x, cursors.y);
+/*
+        if(lines.length >= 10){
+            lines[9].destroy();
+            lines.pop();
+        }
+        lines.create(line);
+*/
+        var graphics = this.add.graphics({ lineStyle: { width: 4, color: 0xfff8b2 } });
+
+        graphics.strokeLineShape(line);
+
+        x = cursors.x;
+        y = cursors.y;
+
+        //watermelon mouse setting position to actual mouse
+        mouse.x = cursors.x;
+        mouse.y = cursors.y;
+
+        //updating score to scoreText
+        scoreText.setText('Score: ' + score);
+    }
+
+
+    //---------------- CREATE FRUITS FUNCTION ----------------
+    function createFruits() {
+        for (var i = 0; i < 10; i++) {
+            fruits.create(Phaser.Math.FloatBetween(200, 600), 700, imageKeys[Math.round(Phaser.Math.FloatBetween(0, 3))]);     
+        }
+        
+        //setScale and velocities
+        fruits.children.iterate(function (child){
+            child.setScale(0.5);
+            child.setVelocityY(Phaser.Math.FloatBetween(-450, -550));
+            child.setVelocityX(Phaser.Math.FloatBetween(-200, +200));
+        });
+
+        //random rotations for each fruit
+        for (var i = 0; i < 20; i++) {
+            rotationArray[i] = Phaser.Math.FloatBetween(1.5, 7);
+        }
+
+
+        
+    }
+
+    //---------------- CUT FRUIT FUNCTION ----------------
+    function cutFruit(mouse, fruit){ // add animationa and sound
+        fruit.disableBody(true, true);
+        score++;
+        if(fruits.countActive() === 0){ //disable if out of bound and set -1 on health
+            createFruits();
+        }
+    }
+
+    //---------------- DESTROY FRUIT FUNCTION ----------------
+    function destroyFruit(child){
+        child.destroy();
+    }
+</script>
+
+</body>
+</html>

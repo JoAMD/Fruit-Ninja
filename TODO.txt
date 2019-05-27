@@ -1,0 +1,12 @@
+erase old line - store lines in que and erase once queue is full or sth.
+add animationa and sound to cutting
+get better graphics
+add ui, ie score etc
+menu etc
+
+Bugs
+the mose watermelon image collides and pushes away fruits at times	
+
+Important links
+https://fruitninja.fandom.com/wiki/Category:Fruit
+https://funhtml5games.com/fruitninja/
